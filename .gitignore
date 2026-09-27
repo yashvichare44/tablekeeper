@@ -5,6 +5,9 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 stage-1/data/
+stage-2/data/
+stage-3/data/
+stage-4/data/
 *.db
 *.pyc
 .DS_Store
