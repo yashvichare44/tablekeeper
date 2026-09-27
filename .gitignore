@@ -1,0 +1,10 @@
+.env
+agent_config.yaml
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+stage-1/data/
+*.db
+*.pyc
+.DS_Store

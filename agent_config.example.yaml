@@ -1,0 +1,11 @@
+planner_agent:
+  agent_id: "your-planner-uuid"
+  api_key: "band_a_..."
+
+implementer_agent:
+  agent_id: "your-implementer-uuid"
+  api_key: "band_a_..."
+
+reviewer_agent:
+  agent_id: "your-reviewer-uuid"
+  api_key: "band_a_..."

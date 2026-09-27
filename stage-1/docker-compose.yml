@@ -1,0 +1,12 @@
+services:
+  tablekeeper:
+    build: .
+    ports:
+      - "8080:8080"
+    networks:
+      - isolated
+    restart: "no"
+
+networks:
+  isolated:
+    internal: true
