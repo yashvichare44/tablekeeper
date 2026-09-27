@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tablekeeper</title>
+  <style>
+    :root {
+      --bg: #14110f; --panel: #1f1a16; --ink: #f4efe8; --muted: #b7a99a;
+      --line: #3a322b; --accent: #d9773a; --good: #7dce8a; --bad: #ef6b6b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #2a211b, var(--bg));
+      color: var(--ink);
+    }
+    header, main { max-width: 1140px; margin: 0 auto; padding: 24px; }
+    header h1 { margin: 0 0 6px; }
+    header p { margin: 0; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+    input, select, button, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--line); background: #2a241f; color: var(--ink); font: inherit;
+    }
+    button { margin-top: 14px; background: var(--accent); border: 0; color: #1a120c; font-weight: 700; cursor: pointer; }
+    button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .tables { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+    .table { border: 1px solid var(--line); border-radius: 12px; padding: 12px; cursor: pointer; }
+    .table.selected { outline: 2px solid var(--accent); }
+    .ok { color: var(--good); } .err { color: var(--bad); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 4px; border-bottom: 1px solid var(--line); }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tablekeeper</h1>
+    <p id="tag">A table is held once. Retries and time zones do not create a second seat.</p>
+  </header>
+  <main class="grid">
+    <section class="card">
+      <h2>Book</h2>
+      <label>Restaurant</label>
+      <select id="restaurant"></select>
+      <label>Guest</label>
+      <input id="guest" placeholder="Ada Lovelace" />
+      <label>Phone</label>
+      <input id="phone" placeholder="+1 415 555 0100" />
+      <label>Party size</label>
+      <input id="party" type="number" min="1" value="2" />
+      <label>Start</label>
+      <input id="start" type="datetime-local" />
+      <label>Timezone</label>
+      <input id="tz" value="America/Los_Angeles" />
+      <div id="tables" class="tables"></div>
+      <label class="stage4 hidden"><input id="wait" type="checkbox" /> Waitlist if the table is taken</label>
+      <button id="book">Hold the table</button>
+      <p id="status"></p>
+    </section>
+    <section class="card">
+      <h2>Held</h2>
+      <table>
+        <thead><tr><th>When</th><th>Where</th><th>Guest</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="extra" class="stage4 hidden">
+        <h2>Waitlist</h2>
+        <div id="waitrows"></div>
+      </div>
+    </section>
+  </main>
+  <script>
+    let selected = null, stage = 1;
+    const $ = (id) => document.getElementById(id);
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 60 - (now.getMinutes() % 30));
+    $("start").value = now.toISOString().slice(0, 16);
+
+    async function boot() {
+      const health = await (await fetch("/health")).json();
+      stage = health.stage;
+      $("tag").textContent = `Stage ${stage}. Same table, overlapping window, one booking.`;
+      document.querySelectorAll(".stage4").forEach((el) => el.classList.toggle("hidden", stage < 4));
+      const rests = (await (await fetch("/api/restaurants")).json()).restaurants;
+      $("restaurant").innerHTML = rests.map((r) => `<option value="${r.id}">${r.name} · ${r.neighborhood}</option>`).join("");
+      $("restaurant").onchange = loadTables;
+      await loadTables();
+      await loadBookings();
+      if (stage >= 4) await loadWait();
+    }
+
+    async function loadTables() {
+      const id = $("restaurant").value;
+      const data = await (await fetch("/api/tables?restaurant_id=" + id)).json();
+      $("tables").innerHTML = data.tables.map((t) => `
+        <div class="table" data-id="${t.id}"><strong>${t.name}</strong><br/>${t.capacity} seats · ${t.zone}</div>`).join("");
+      document.querySelectorAll(".table").forEach((el) => {
+        el.onclick = () => {
+          selected = Number(el.dataset.id);
+          document.querySelectorAll(".table").forEach((n) => n.classList.remove("selected"));
+          el.classList.add("selected");
+        };
+      });
+    }
+
+    async function loadBookings() {
+      const data = await (await fetch("/api/reservations")).json();
+      $("rows").innerHTML = data.reservations.map((r) => `
+        <tr>
+          <td>${r.starts_at.replace("T"," ").slice(0,16)}</td>
+          <td>${r.restaurant_name}<br/>${r.table_name}</td>
+          <td>${r.guest_name}</td>
+          <td><button class="ghost" data-del="${r.id}">Cancel</button></td>
+        </tr>`).join("") || `<tr><td colspan="4">No bookings yet</td></tr>`;
+      document.querySelectorAll("[data-del]").forEach((b) => {
+        b.onclick = async () => {
+          await fetch("/api/reservations/" + b.dataset.del, { method: "DELETE" });
+          await loadBookings();
+          if (stage >= 4) await loadWait();
+        };
+      });
+    }
+
+    async function loadWait() {
+      const data = await (await fetch("/api/waitlist")).json();
+      $("waitrows").textContent = data.waitlist.length
+        ? data.waitlist.map((w) => `${w.guest_name} · party ${w.party_size}`).join(" · ")
+        : "Empty";
+    }
+
+    $("book").onclick = async () => {
+      $("status").textContent = "";
+      if (!selected) { $("status").className = "err"; $("status").textContent = "Pick a table."; return; }
+      const res = await fetch("/api/reservations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify({
+          table_id: selected,
+          guest_name: $("guest").value,
+          phone: $("phone").value,
+          party_size: Number($("party").value),
+          starts_at: $("start").value,
+          timezone: $("tz").value,
+          waitlist_if_full: $("wait").checked,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { $("status").className = "err"; $("status").textContent = data.detail || "Failed"; }
+      else if (data.waitlisted) { $("status").className = "ok"; $("status").textContent = "On the waitlist"; }
+      else { $("status").className = "ok"; $("status").textContent = `Held ${data.table_name}`; }
+      await loadBookings();
+      if (stage >= 4) await loadWait();
+    };
+
+    boot();
+  </script>
+</body>
+</html>

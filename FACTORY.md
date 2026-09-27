@@ -55,9 +55,18 @@ Record tokens and wall time from the BAND Desktop room after each stage run. Fil
 
 Reviewer must re-run checks. A missing log is a BLOCK. Implementer may not ACCEPT its own work.
 
-## Result so far
+## Results
 
-`stage-1/` is a complete, containerized service for the tablekeeper track. Later stages go in `stage-2/` through `stage-4/` the same way: one task in the room, factory produces the folder.
+Each stage folder is a complete, buildable service:
+
+| Folder | What it adds | Port |
+|---|---|---|
+| `stage-1/` | One room of tables, no overlapping hold, 20-way race | 8080 |
+| `stage-2/` | Two restaurants, cancel, guest phone | 8082 |
+| `stage-3/` | Idempotent retries, safe reschedule | 8083 |
+| `stage-4/` | Waitlist promotion + one review per booking | 8084 |
+
+Room tasks live in `tasks/`. Mandates stay generic.
 
 ## BAND Desktop export
 

@@ -13,18 +13,22 @@ Three seats, generic mandates, Band room handoffs:
 - [mandates/implementer.md](mandates/implementer.md)
 - [mandates/reviewer.md](mandates/reviewer.md)
 
-## Stage 1 result
+## Results (all four stages)
 
-`stage-1/` is a reservation service. A table cannot be double-booked under a concurrent race.
+Official lablab stage packets were not public, so these follow the published arc: build the service, repair retries, extend it without regressions.
+
+| Stage | Folder | Check | UI |
+|---|---|---|---|
+| 1 | `stage-1/` | `PYTHONPATH=. python3 -m pytest tests/test_concurrency.py` | http://localhost:8080 |
+| 2 | `stage-2/` | `PYTHONPATH=. python3 -m pytest tests/test_stage.py` | http://localhost:8082 |
+| 3 | `stage-3/` | `PYTHONPATH=. python3 -m pytest tests/test_stage.py` | http://localhost:8083 |
+| 4 | `stage-4/` | `PYTHONPATH=. python3 -m pytest tests/test_stage.py` | http://localhost:8084 |
 
 ```bash
-cd stage-1
-python3 -m pip install -r requirements.txt
-PYTHONPATH=. python3 -m pytest tests/test_concurrency.py
-docker compose up --build
+cd stage-4 && docker compose up --build
 ```
 
-Then open http://localhost:8080
+Room tasks: `tasks/stage-1-tablekeeper.md` … `tasks/stage-4-tablekeeper.md`.
 
 ## Run the seats
 
