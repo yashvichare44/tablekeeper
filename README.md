@@ -1,44 +1,49 @@
-# Dark Factory — tablekeeper
+# Tablekeeper — Dark Factory
 
-BAND software factory for the WeAreDevelopers x BAND Dark Factory hackathon, **tablekeeper** track.
+BAND factory + official-contract Tablekeeper service for the [WeAreDevelopers x BAND Dark Factory](https://lablab.ai/ai-hackathons/wearedevelopers-hackathon) hackathon.
 
-What you submit is the factory, the room run, and the result.
+The product matches the published tablekeeper harness: empty start, `POST /_test/reset` fixtures, auth, occupancy under one lock, idempotent writes, portable export/import, 2 CPU / 2 GiB, no pip, no outbound runtime.
+
+Earlier public runs that encode this contract: [Figueira](https://github.com/athosfif/tablekeeper-band-dark-factory), [icohangar ShipScore](https://github.com/icohangar-ops/tablekeeper).
+
+## Stages
+
+| Folder | Scope | UI |
+|---|---|---|
+| [stage-1](stage-1/RUN.md) | JSON API, auth, bookings, atomic moves, portable state | none |
+| [stage-2](stage-2/RUN.md) | Combinable table pairs + English browser flows | `/` `/signup` `/login` `/lookup` |
+| [stage-3](stage-3/RUN.md) | Dated policies, history, recurring series | same routes |
+| [stage-4](stage-4/RUN.md) | Closure replans + atomic series amend | same routes |
+
+```sh
+docker build -t tablekeeper-stage4 ./stage-4
+docker run --rm --name tablekeeper-stage4 --cpus 2 --memory 2g \
+  -e PORT=8080 -p 127.0.0.1:8080:8080 tablekeeper-stage4
+```
+
+Readiness: `GET /health` → `{"status":"ok"}`. The process starts empty. Load restaurants through `POST /_test/reset`.
 
 ## Factory
 
-Three seats, generic mandates, Band room handoffs:
+Three generic seats (product detail stays in the room task, not the mandates):
 
 - [FACTORY.md](FACTORY.md)
 - [mandates/planner.md](mandates/planner.md)
 - [mandates/implementer.md](mandates/implementer.md)
 - [mandates/reviewer.md](mandates/reviewer.md)
 
-## Results (all four stages)
-
-Official lablab stage packets were not public, so these follow the published arc: build the service, repair retries, extend it without regressions.
-
-| Stage | Folder | Check | UI |
-|---|---|---|---|
-| 1 | `stage-1/` | `PYTHONPATH=. python3 -m pytest tests/test_concurrency.py` | http://localhost:8080 |
-| 2 | `stage-2/` | `PYTHONPATH=. python3 -m pytest tests/test_stage.py` | http://localhost:8082 |
-| 3 | `stage-3/` | `PYTHONPATH=. python3 -m pytest tests/test_stage.py` | http://localhost:8083 |
-| 4 | `stage-4/` | `PYTHONPATH=. python3 -m pytest tests/test_stage.py` | http://localhost:8084 |
-
-```bash
-cd stage-4 && docker compose up --build
-```
-
-Room tasks: `tasks/stage-1-tablekeeper.md` … `tasks/stage-4-tablekeeper.md`.
-
-## Run the seats
-
-```bash
-cp agent_config.example.yaml agent_config.yaml   # then paste three Band keys
-# .env already needs LLM_BASE_URL / LLM_MODEL / WORKSPACE_ROOT
-
+```sh
 .venv/bin/python -m seats.planner_agent
 .venv/bin/python -m seats.implementer_agent
 .venv/bin/python -m seats.reviewer_agent
 ```
 
-Paste [tasks/stage-1-tablekeeper.md](tasks/stage-1-tablekeeper.md) into the Band room as the only human message.
+## Official check (when you have the challenge checkout)
+
+```sh
+python -m harness run --track tablekeeper --repo /absolute/this/repo \
+  --all --mode isolated --out /absolute/evidence
+python -m harness check /absolute/this/repo --track tablekeeper
+```
+
+The read-only checkout used by accepted runs is `803560d2a678ace1414465c098eb0ab5380ffade`.

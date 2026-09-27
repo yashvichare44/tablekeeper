@@ -1,14 +1,9 @@
-# Room task — stage 2 (paste this, then stop typing)
+# Room task — stage 2
 
-Extend the service in `stage-2/` into a complete, buildable multi-restaurant reservation app.
+Copy the accepted stage-1 tree into `stage-2/` and widen only that folder.
 
-Keep the stage-1 hard rule: one table cannot be held twice for an overlapping window, including concurrent requests.
+Add declared `combinable` pairs, `table_ids` (keep legacy `table_id`), and the English browser product at `/`, `/signup`, `/login`, `/lookup`. Scripts and styles stay local. Exact decimal JSON in the browser — no silent JS integer rounding.
 
-Add:
-- more than one restaurant, each with its own tables
-- availability filtered by restaurant
-- cancel from the API and the UI
-- guest phone on a booking
-- the same race check, plus a check that two restaurants can book the same clock time
+Stage-1 exports must import. Cancelled seeds do not occupy. Keep the lock, receipts and portable snapshot rules.
 
-`stage-2/docker-compose.yml` must start with no outbound network.
+Reviewer must exercise pair occupancy and the four HTML routes. Freeze stage-1.

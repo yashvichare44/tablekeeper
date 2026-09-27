@@ -1,15 +1,13 @@
-# Room task — stage 1 (paste this, then stop typing)
+# Room task — stage 1
 
-Build a restaurant reservation service in `stage-1/`.
+Implement `stage-1/` as a standalone JSON API that satisfies the official tablekeeper stage-1 contract.
 
-Hard rule: the same table must never be held by two reservations whose time windows overlap, including concurrent requests, retries, and bookings created from different time zones.
+- No browser UI. Stdlib only. `PORT` bind, unprivileged user, IANA zoneinfo in the image.
+- Starts empty. `POST /_test/reset` loads users, restaurants, tables and optional confirmed reservations (204).
+- Public: `GET /health`, `GET /restaurants`, restaurant detail, `GET /availability`.
+- Auth: `POST /auth/signup`, `POST /auth/login` with salted scrypt and non-expiring bearer tokens.
+- Authenticated: create/list/get/patch/cancel reservations and `POST /reservation-moves`. Create routes require `Idempotency-Key`.
+- One lock. Half-open UTC overlap. Atomic moves have no intermediate occupancy.
+- `GET /_test/export` and `POST /_test/import` (track tablekeeper, format_version 1). Invalid import must not mutate state.
 
-Ship:
-- a service that starts from `stage-1/docker-compose.yml` with no outbound network
-- a simple UI to pick a table and book a window
-- automated checks that prove a 20-way race for one table/window yields exactly one booking
-- keep the folder self-contained and buildable
-
-Planner: split the work and assign the Implementer.
-Implementer: write the service and the race check, then @mention Reviewer with evidence.
-Reviewer: re-run the checks. BLOCK or ACCEPT. Do not edit product files.
+Planner assigns. Implementer ships a revision. Reviewer re-runs occupancy and reset/import cases. Do not edit later-stage folders.

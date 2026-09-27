@@ -1,11 +1,7 @@
-# Room task — stage 3 (paste this, then stop typing)
+# Room task — stage 3
 
-Repair failure modes in `stage-3/` without weakening the no-overlap rule.
+Copy accepted stage-2 into `stage-3/` and widen only that folder.
 
-The service must:
-- treat `Idempotency-Key` as a replay: the same key cannot create a second reservation
-- reject a reschedule that would overlap another booking on that table
-- keep the 20-way race at exactly one winner
-- remain a complete containerized service
+Add dated manager policies, `accepted_terms` / `revision`, reservation history and decision reads, and `POST /series` recurring adoption. Cutoffs use accepted terms. `explain=true` on availability. Import stage-1/2 snapshots without inventing history.
 
-This stage is about retries and recovery, not new product surface.
+No stage-4 closures. Reviewer re-runs cumulative suites plus policy and series cases.

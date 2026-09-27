@@ -1,12 +1,7 @@
-# Room task — stage 4 (paste this, then stop typing)
+# Room task — stage 4
 
-Extend `stage-4/` without breaking what already works.
+Copy accepted stage-3 into `stage-4/` and widen only that folder.
 
-Add:
-- a waitlist when a requested window is full
-- automatic promotion from the waitlist when a conflicting booking is cancelled
-- one review per reservation, a second review is rejected
+Add manager `POST /restaurants/{id}/replans` and apply, plus `POST /series/{id}/amend`. Bounded solver: six tables, four pairs, six considered bookings; larger inputs return `planning_limit` with no mutation. Closures occupy. Original series schedules survive edits.
 
-Re-run every earlier check (overlap, cross-restaurant, race, idempotent retry, reschedule conflict). A regression is a BLOCK.
-
-Complete folder, `docker compose up`, no outbound network.
+Reviewer runs the full isolated harness on all four folders. Do not edit frozen earlier folders.

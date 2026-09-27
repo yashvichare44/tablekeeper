@@ -1,4 +1,4 @@
-data
-.pytest_cache
 __pycache__
-*.db
+*.pyc
+._*
+.DS_Store
